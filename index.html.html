@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Classroom Controller</title>
+
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #020617;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: bold;
+  }
+
+  .container {
+    padding: 20px;
+    max-width: 480px;
+    margin: auto;
+  }
+
+  .card {
+    background: #020617;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .btn-on { background: #22c55e; color: #052e16; }
+  .btn-off { background: #ef4444; color: #450a0a; }
+  .btn-voice { background: #3b82f6; color: #020617; }
+
+  .status {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #94a3b8;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.8em;
+    color: #64748b;
+    margin-top: 20px;
+  }
+</style>
+</head>
+
+<body>
+
+<header>🏫 Smart Classroom Controller</header>
+
+<div class="container">
+
+  <div class="card">
+    <h3>🎙️ Voice Command</h3>
+    <button class="btn-voice" onclick="startVoice()">Mulai Perintah Suara</button>
+    <div class="status" id="voiceText">Menunggu perintah...</div>
+  </div>
+
+  <div class="card">
+    <h3>❄️ AC</h3>
+    <button class="btn-on" onclick="sendCmd('/ac_on')">AC ON</button>
+    <button class="btn-off" onclick="sendCmd('/ac_off')">AC OFF</button>
+  </div>
+
+  <div class="card">
+    <h3>📽️ Proyektor</h3>
+    <button class="btn-on" onclick="sendCmd('/proy_on')">PROYEKTOR ON</button>
+    <button class="btn-off" onclick="sendCmd('/proy_off')">PROYEKTOR OFF</button>
+  </div>
+
+  <div class="card">
+    <h3>⚡ Semua Perangkat</h3>
+    <button class="btn-off" onclick="sendCmd('/all_off')">MATIKAN SEMUA</button>
+  </div>
+
+</div>
+
+<footer>
+  Smart Classroom • ESP32 • Web Voice Control
+</footer>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.lang = "id-ID";
+recognition.continuous = false;
+recognition.interimResults = false;
+
+function startVoice() {
+  document.getElementById("voiceText").innerText = "🎧 Mendengarkan...";
+  recognition.start();
+}
+
+recognition.onresult = function(event) {
+  let text = event.results[0][0].transcript.toLowerCase();
+  document.getElementById("voiceText").innerText = "🗣️ \"" + text + "\"";
+
+  if (text.includes("nyalakan ac") || text.includes("hidupkan ac")) {
+    sendCmd("/ac_on");
+  }
+  else if (text.includes("matikan ac")) {
+    sendCmd("/ac_off");
+  }
+  else if (text.includes("nyalakan proyektor") || text.includes("hidupkan proyektor")) {
+    sendCmd("/proy_on");
+  }
+  else if (text.includes("matikan proyektor")) {
+    sendCmd("/proy_off");
+  }
+  else if (text.includes("matikan semua")) {
+    sendCmd("/all_off");
+  }
+  else {
+    document.getElementById("voiceText").innerText += " ❌ (Perintah tidak dikenali)";
+  }
+};
+
+recognition.onerror = function() {
+  document.getElementById("voiceText").innerText = "❌ Voice error, coba lagi";
+};
+
+function sendCmd(url) {
+  fetch(url)
+    .then(() => console.log("Command sent:", url))
+    .catch(() => alert("ESP32 tidak merespon"));
+}
+</script>
+
+</body>
+</html>
